@@ -1,0 +1,157 @@
+# Next.js / Supabase Starter
+
+## Introduction
+
+A template for greenfield Next.js + Supabase products, pre-wired for **agent-first development**.
+
+## Prerequisites
+
+### 1. Node.js v18+
+npm is included with Node.js — no separate install needed.
+
+- **Check your installed version:**
+```bash
+node -v
+```
+If you see `v18.x.x` or higher, you're good. If not, install or update Node.js:
+
+- **macOS/Linux (via nvm):**
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+nvm install 18
+nvm use 18
+```
+
+- **Windows:** Download the installer from [nodejs.org](https://nodejs.org/)
+
+### 2. Supabase Project
+A Supabase account, organization and project is required.
+
+- [Signup](https://supabase.com/dashboard/signup).
+- Create a [new project](https://database.new).
+
+### 3. Vercel Account
+A Vercel account and the Vercel CLI is required.
+
+- [Signup](https://vercel.com/signup). Use the **same GitHub account** that will host your repo so auto CI works
+- Install the Vercel CLI globally and authenticate
+```bash
+npm install -g vercel
+vercel login
+```
+
+## Setup
+
+1. Clone this template to a local repository `repo-name` of your choice:
+```bash
+git clone https://github.com/joelmsherman/Next-Supabase-App.git /path/to/your/<repo-name>
+cd /path/to/your/<repo-name>
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Disconnect from the template's remote and create an empty one on GitHub (no README/license/.gitignore)
+```bash
+git remote remove origin
+```
+
+4. Point your local at your new GitHub remote and push
+```bash
+git remote add origin https://github.com/<your-user>/<your-repo>.git
+git branch -M main
+git push -u origin main
+```
+
+5. Configure Supabase
+In your Supabase project dashboard, click **Connect** --> **Framework**, set `Framework` = Next.js, `Variant` = App Router; copy the env-var block, paste it over `.env.example` and rename to `.env.local`.
+
+6. Configure Supabase Skills and MCP Server access
+In your Supabase project, click **Connect** --> **MCP**, set `Client` = Claude Code, select all feature groups, click **Copy Prompt**, and deliver it to Claude Code. Claude will install Supabase Agent Skills and register the project-scoped MCP Server.
+
+7. Configure Vercel Skills and MCP Server access
+```bash
+`npx skills add https://github.com/vercel-labs/agent-skills --skill deploy-to-vercel`
+```
+```bash
+mcp add --transport http vercel https://mcp.vercel.com`
+```
+
+8. Verify
+```bash
+npm run dev
+```
+Home page should display "Can't wait to see what you build"
+
+## Workflow
+
+### Step 1 - Setup Design System
+In Claude Code, invoke the design-system skill. Claude asks three quick picks — brand color, display font, body font (curated options with an "Other" fallback for custom hex / Google Fonts) — then scaffolds the full design system, including a live reference page at `/admin/design-system` that future agents are instructed to defer to.
+```
+/design-system
+```
+
+### Step 2 - Create PRD
+In Claude Code, invoke the prd-creator skill, and pass along any other context about the product you might have. Claude interviews you about the product, then writes a complete PRD pplus a sequence of milestone prompt files you hand to Claude in the next step.
+
+```
+/prd-creator
+```
+
+### Step 3 - Implement each Milestone
+Hand each milestone prompt back to Claude **in Plan Mode**. Answer clarifying questions, review the plan, approve, test (`npm run dev`), then [deploy](#deployment). Move to the next milestone, rinse and repeat.
+
+## Deployment
+
+Deployment is driven by the `deploy-to-vercel` skill installed in [Getting Started → step 7](#getting-started). The skill detects whether your project is linked to Vercel, links it on first run using the GitHub remote you set up in steps 3–4, deploys, and returns the URL. **Previews are the default**; production requires an explicit ask. Here are the Vercel deployment workflow steps:
+
+1. First deploy (preview) Prompt for Claude:
+
+> Deploy this app to Vercel as a preview and give me the link.
+
+Claude will create and link a new Vercel project (scoped to the team you choose), deploy a preview, and return the URL.
+
+2. Inject Supabase env vars into the new Vercel project. Prompt Claude:
+
+> Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from my `.env.local` to the Vercel project for Production, Preview, and Development.
+
+Claude will use the Vercel MCP server to set both env vars across all three environments. Alternatively, you can add them by hand in the Vercel dashboard under **Project → Settings → Environment Variables**. Trigger a redeploy after the vars are set so the build picks them up.
+
+3. For ongoing deployments, every push to a non-`main` branch or PR **auto-deploys a preview**. Just ask Claude to commit and push when you're ready for a preview. **For a production deploy**, merge your PR into `main`, or prompt Claude:
+
+> Promote the latest preview to production.
+
+4. **After your first production deployment**, tell Claude to allow-list the new domains for Supabase auth redirects:
+
+> Add my Vercel production domain and the `*.vercel.app` preview wildcard to the Supabase auth redirect URL allow-list.
+
+The Supabase MCP installed in step 3 lets Claude configure this directly.
+
+## Folder Structure
+
+```
+├── app/                 # Next.js App Router
+│   ├── auth/            # login / sign-up / forgot-password routes
+│   ├── protected/       # authenticated routes
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/          # React components
+│   ├── ui/              # shadcn/ui primitives
+│   ├── tutorial/        # onboarding walkthrough
+│   └── *-form.tsx       # auth forms, theme switcher, etc.
+├── lib/
+│   ├── supabase/        # browser + server Supabase clients
+│   └── utils.ts
+├── product-plan/
+│   ├── prompts/        # contains one-shot or section prompt for Claude
+│   ├── ...             # in addition to many other folders related to your product plan and design
+├── proxy.ts             # Supabase auth cookie proxy
+├── components.json      # shadcn/ui config
+├── tailwind.config.ts
+├── next.config.ts
+├── tsconfig.json
+├── .env.example
+└── package.json
+```
