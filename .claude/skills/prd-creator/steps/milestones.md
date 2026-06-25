@@ -1,16 +1,18 @@
-# Milestone breakout
+# Milestones (one per page)
 
-Propose a default milestone breakout based on a reasonable dependency sequence, plus 2 alternatives at different granularities. For example:
+For a data app, milestones follow the **page inventory**: the default is **one milestone per dashboard page**, built in the priority order locked earlier. Each page is a self-contained, testable unit of work — exactly the right size for a coding-agent session.
 
-- **Default (recommended):** 3 milestones — Core CRUD → Integrations layer → Public-facing additions
-- **Alternative A — fewer/bigger:** 2 milestones — Foundation+CRUD+Integrations together → Public-facing
-- **Alternative B — more/smaller:** 5–6 milestones — One per major feature
+Propose the default sequence (one milestone per page) plus two alternatives, and let the user pick via AskUserQuestion:
+
+- **Default (recommended):** one milestone per page — Milestone 1 = first page, Milestone 2 = second page, etc.
+- **Alternative A — add a foundation milestone first:** if the pages share a navigation shell, common slicers, or a non-trivial model connection, make Milestone 1 a small "app shell + model connection + shared layout" step, then one milestone per page after it. (Skip this if the Rayfin scaffold + design system already cover the shell — often they do.)
+- **Alternative B — group small pages:** combine two closely related, lightweight pages into a single milestone.
 
 Each milestone must:
-- Deliver visible, usable functionality the user can see and test in the browser
+- Deliver a **working, previewable page** the user can see and test with `npm run dev`
 - Be a self-contained working session for a coding agent
-- Have clear dependencies (later milestones build on earlier ones)
+- Build on earlier milestones (shared measures/dimensions defined once, reused later)
 
-Explain the tradeoff in plain language: fewer milestones = larger one-shot sessions, more risk per session, less control; more milestones = more checkpoints, slower overall, more context-switching.
+Explain the tradeoff in plain language: one-page-per-milestone gives the most checkpoints and the tightest feedback loop; grouping pages means fewer, larger sessions with more risk per session.
 
-Use AskUserQuestion to let the user pick. After they pick, propose the actual milestone names and one-line scopes, and confirm.
+After the user picks, restate the final milestone list — each milestone named for its page, with a one-line scope — and confirm. The per-page spec from the previous phase becomes that milestone's detailed scope.

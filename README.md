@@ -1,157 +1,227 @@
-# Next.js / Supabase Starter
+# Fabric Data App Template
+
+A GitHub template for full-lifecycle development of **Microsoft Fabric Data Apps** and their **Power BI Semantic Models** behind them, with Claude Code. 
 
 ## Introduction
 
-A template for greenfield Next.js + Supabase products, pre-wired for **agent-first development**.
+A [Fabric Data App](https://learn.microsoft.com/en-gb/fabric/apps/data-apps-template) is a **"visualization-as-code"** web application that runs inside the Microsoft Fabric portal and queries a Power BI **semantic model** via the Execute DAX Queries REST API. Where a Power BI report is drag-and-drop, a data app is built from explicit code: DAX queries, [Vega-Lite](https://vega.github.io/vega-lite/) visual specs, and React components — giving you full control over layout, interactivity, and branding while reusing your governed semantic model and its row-level security.
 
-## Prerequisites
+Data apps are scaffolded and deployed with the **[Rayfin CLI](https://www.npmjs.com/package/@microsoft/rayfin)** (a Vite + React + Tailwind v4 stack, driven here with npm). This template doesn't replace that scaffold — it wraps the whole lifecycle around it:
 
-### 1. Node.js v18+
-npm is included with Node.js — no separate install needed.
+1. **Plan** the product with the `/prd-creator` skill.
+2. **Build & deploy the semantic model** the data app reads from — authored as TMDL source under `src/`, validated with the Best Practice Analyzer, and deployed to a Fabric workspace via the Power BI plugins and Fabric CLI.
+3. **Create the App item in Fabric, then scaffold it** into an `<AppName>/` subfolder with the Rayfin CLI, style it with the `/design-system` skill, and build its visuals as DAX + Vega-Lite + React.
+4. **Validate** DAX via Tabular Editor and **deploy** with `npx rayfin up`.
 
-- **Check your installed version:**
+The development model is **source-first and agent-assisted**: both the semantic model and the data app live as code under source control, and Claude Code does the heavy lifting on TMDL authoring, DAX, visual specs, and deployment.
+
+## Requirements
+
+### Claude Code
+
+Install Claude Code per the [official instructions](https://docs.claude.com/en/docs/claude-code/overview).
+
+### Node.js
+
+**Node.js v18+** (npm is included — used for the Rayfin data app). Check with `node -v`; install/update from [nodejs.org](https://nodejs.org/) or via [nvm](https://github.com/nvm-sh/nvm).
+
+### Rayfin CLI
+
+Run later at the project root, after the semantic model is complete and you're ready to scaffold the app.
+
+### Fabric CLI
+
+The [Fabric CLI](https://microsoft.github.io/fabric-cli/) (`fab`) is used to discover workspace/model IDs and deploy the semantic model. Install and authenticate:
+
 ```bash
-node -v
-```
-If you see `v18.x.x` or higher, you're good. If not, install or update Node.js:
-
-- **macOS/Linux (via nvm):**
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-nvm install 18
-nvm use 18
-```
-
-- **Windows:** Download the installer from [nodejs.org](https://nodejs.org/)
-
-### 2. Supabase Project
-A Supabase account, organization and project is required.
-
-- [Signup](https://supabase.com/dashboard/signup).
-- Create a [new project](https://database.new).
-
-### 3. Vercel Account
-A Vercel account and the Vercel CLI is required.
-
-- [Signup](https://vercel.com/signup). Use the **same GitHub account** that will host your repo so auto CI works
-- Install the Vercel CLI globally and authenticate
-```bash
-npm install -g vercel
-vercel login
+pip install ms-fabric-cli
+fab auth login
 ```
 
-## Setup
+### Tabular Editor
 
-1. Clone this template to a local repository `repo-name` of your choice:
-```bash
-git clone https://github.com/joelmsherman/Next-Supabase-App.git /path/to/your/<repo-name>
-cd /path/to/your/<repo-name>
-```
+Used to browse the model schema and validate DAX before wiring it into visuals. The BPA script (below) also auto-downloads the portable build. See [tabulareditor.com](https://www.tabulareditor.com/).
 
-2. Install dependencies:
-```bash
-npm install
-```
+### PowerShell 7+
 
-3. Disconnect from the template's remote and create an empty one on GitHub (no README/license/.gitignore)
+Required for the BPA validation script. Install via [the official instructions](https://learn.microsoft.com/powershell/scripting/install/installing-powershell).
+
+### Power BI Desktop (optional)
+
+The semantic model is authored as TMDL (via Tabular Editor and the Power BI plugins), so Power BI Desktop isn't required. If you prefer to author or preview the model visually, enable Developer Mode so it saves as TMDL:
+- **File** > **Options and settings** > **Options** > **Preview features**
+- Enable **Power BI project (.pbip) save option**
+
+### Claude Code Plugins
+
+The `.claude/settings.json` in this template points to the [`data-goblin/power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development) marketplace and pre-enables four plugins (the report-authoring plugins are intentionally left off — visualization lives in the data app):
+
+- `fabric-cli` — Fabric workspace and deployment operations
+- `pbip` — PBIP project structure and rename cascading
+- `semantic-models` — model review, naming, DAX, Power Query, lineage
+- `tabular-editor` — BPA rules and DAX validation
+
+On your first `claude` launch in the cloned project, accept the marketplace trust prompt; the plugins install (and auto-update) from there.
+
+### Fabric prerequisites
+
+- Access to Microsoft Fabric with **contributor or admin** permissions on a workspace.
+- The **Fabric Apps workload enabled** in your tenant ([how to enable](https://learn.microsoft.com/en-gb/fabric/apps/create-app#enable-fabric-app-in-tenant-admin-settings)).
+- The **Semantic Model Execute Queries REST API** tenant setting enabled (Admin portal → Integration settings).
+- **Build and Read** permissions on the semantic model, hosted on a Fabric or Power BI capacity.
+
+## Getting Started
+
 ```bash
+# Clone from this template
+git clone https://github.com/joelmsherman/fabric-data-app.git my-data-app
+cd my-data-app
+
+# Remove the template remote
 git remote remove origin
+
+# Initialize the semantic-model scaffold — renames {{ProjectName}} tokens across
+# src/, CLAUDE.md, and expressions.tmdl, and sets the SQL connection params (if applicable)
+./setup.sh "ProjectName" "DatabaseName" "ServerName"
+
+# Launch Claude Code (accept the marketplace trust prompt on first run)
+claude
 ```
 
-4. Point your local at your new GitHub remote and push
-```bash
-git remote add origin https://github.com/<your-user>/<your-repo>.git
-git branch -M main
-git push -u origin main
-```
+`./setup.sh` arguments:
+- `ProjectName` (required) — name for the semantic-model project
+- `DatabaseName` (optional, defaults to `ProjectName`) — SQL Server database name
+- `ServerName` (optional, defaults to `localhost`) — SQL Server instance
 
-5. Configure Supabase
-In your Supabase project dashboard, click **Connect** --> **Framework**, set `Framework` = Next.js, `Variant` = App Router; copy the env-var block, paste it over `.env.example` and rename to `.env.local`.
-
-6. Configure Supabase Skills and MCP Server access
-In your Supabase project, click **Connect** --> **MCP**, set `Client` = Claude Code, select all feature groups, click **Copy Prompt**, and deliver it to Claude Code. Claude will install Supabase Agent Skills and register the project-scoped MCP Server.
-
-7. Configure Vercel Skills and MCP Server access
-```bash
-`npx skills add https://github.com/vercel-labs/agent-skills --skill deploy-to-vercel`
-```
-```bash
-mcp add --transport http vercel https://mcp.vercel.com`
-```
-
-8. Verify
-```bash
-npm run dev
-```
-Home page should display "Can't wait to see what you build"
+The semantic model under `src/<ProjectName>.SemanticModel/` is authored as TMDL — edit it with Claude (the Power BI plugins) or open it in Tabular Editor as you develop.
 
 ## Workflow
 
-### Step 1 - Setup Design System
-In Claude Code, invoke the design-system skill. Claude asks three quick picks — brand color, display font, body font (curated options with an "Other" fallback for custom hex / Google Fonts) — then scaffolds the full design system, including a live reference page at `/admin/design-system` that future agents are instructed to defer to.
+### 0. Client intake
+
+Conduct and record an intake meeting with the client to discover:
+- background on the business context
+- pain points and existing issues
+- what they're looking to acheive with a new solution
+- existing data (ask them to email examples before meeting, and walk thru during meeting)
+
+### 1. Plan the product
+
+Place source data samples under `docs/data/` and describe them using `docs/data/metadata-template.md`.
+
+Invoke the `/prd-creator` skill and provide Claude with the intake meeting transcript; ask Claude in the prompt to review `docs/data` so that it can ground the plan for the semantic model.
+
+### 2. Design mocks
+
+Provide the PRD and a Design System to [Claude Design](claude.ai/design) and create contained high-fidelity interactive mocks for the client to review along with the PRD. Iterate here with client until final approval.
+
+### 3. Build the semantic model
+
+Provide the PRD to Claude along with `docs/data` and ask Claude to build the semantic model including facts, dimensions, relationships and key measures necessary to achieve the product objectives.
+
+### 4. Validate the model
+
+Validate the model against the BPA rule set (first run downloads the Tabular Editor portable):
+
+```bash
+pwsh src/.bpa/bpa.ps1 -src "src"
 ```
-/design-system
+
+### 5. Deploy the semantic model & get its share link
+
+Authenticate, then ask Claude to deploy to a Fabric workspace where you're a member (uses `/fabric-cli`):
+
+```bash
+fab auth login
 ```
 
-### Step 2 - Create PRD
-In Claude Code, invoke the prd-creator skill, and pass along any other context about the product you might have. Claude interviews you about the product, then writes a complete PRD pplus a sequence of milestone prompt files you hand to Claude in the next step.
+Once deployed, copy the model's **share link** from the Power BI Service — the URL contains the workspace ID and model ID and is how the data app connects, e.g.:
 
 ```
-/prd-creator
+https://app.powerbi.com/groups/<workspace-id>/modeling/<model-id>/modelView
 ```
 
-### Step 3 - Implement each Milestone
-Hand each milestone prompt back to Claude **in Plan Mode**. Answer clarifying questions, review the plan, approve, test (`npm run dev`), then [deploy](#deployment). Move to the next milestone, rinse and repeat.
+### 6. Create the Fabric App item, then scaffold it locally
 
-## Deployment
+The App item must exist in Fabric **before** you scaffold. In the Fabric portal, open your workspace and select **New item → App** ([create-app steps 1–3](https://learn.microsoft.com/en-gb/fabric/apps/create-app)), give it a name — this becomes your `<AppName>` — and select **Create**.
 
-Deployment is driven by the `deploy-to-vercel` skill installed in [Getting Started → step 7](#getting-started). The skill detects whether your project is linked to Vercel, links it on first run using the GitHub remote you set up in steps 3–4, deploys, and returns the URL. **Previews are the default**; production requires an explicit ask. Here are the Vercel deployment workflow steps:
+Then, **from the root of this repo**, run the command the portal shows you (it pre-fills the app name and workspace). Like any `npm create` scaffolder, it downloads the data app into a **new `<AppName>/` subfolder** next to `src/` — making this repo a monorepo of semantic model + data app:
 
-1. First deploy (preview) Prompt for Claude:
+```bash
+npm create @microsoft/rayfin@latest -- "<AppName>" --template dataapp --workspace "<WorkspaceName>"
+cd <AppName>
+npx rayfin ai-files install
+```
 
-> Deploy this app to Vercel as a preview and give me the link.
+> `<AppName>` must match the App item you created in Fabric. If the Rayfin scaffold initializes its own git repo inside `<AppName>/`, **delete that nested `<AppName>/.git`** (keep the repo-root `.git`) so the whole solution stays one git repo. Run this from the repo root:
+> ```bash
+> rm -rf <AppName>/.git
+> ```
+> This matters for more than tidiness: Claude Code discovers the repo-root `.claude/skills/` (design-system, prd-creator) and `settings.json` plugins only when `<AppName>/` is part of **this** repo. The nested `<AppName>/.git` would make Claude treat `<AppName>/` as a separate project and lose those skills.
+>
+> **Keep your Claude session at the repo root** for all agent work — it can read and edit files under `<AppName>/` just fine, and only there does it see the skills and plugins. Use a terminal in `<AppName>/` only to run the shell commands (`npm run dev`, `npx rayfin up`).
 
-Claude will create and link a new Vercel project (scoped to the team you choose), deploy a preview, and return the URL.
+### 7. Set up the design system
 
-2. Inject Supabase env vars into the new Vercel project. Prompt Claude:
+From your **repo-root Claude session**, invoke the **`/design-system`** skill (it operates on the `<AppName>/` app files). Claude asks three quick picks — brand color, display font, body font — then scaffolds a central style file and a live reference page that future agents defer to (Tailwind v4).
 
-> Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from my `.env.local` to the Vercel project for Production, Preview, and Development.
+### 8. Build solution milestone by milestone
 
-Claude will use the Vercel MCP server to set both env vars across all three environments. Alternatively, you can add them by hand in the Vercel dashboard under **Project → Settings → Environment Variables**. Trigger a redeploy after the vars are set so the build picks them up.
+Hand Claude the first milestone prompt, the **model share link**, and the handoff link from Claude Design.
 
-3. For ongoing deployments, every push to a non-`main` branch or PR **auto-deploys a preview**. Just ask Claude to commit and push when you're ready for a preview. **For a production deploy**, merge your PR into `main`, or prompt Claude:
+Iterate locally:
+> use terminal in `<AppName>/`
+```bash
+npm run dev      # preview at http://localhost:5173
+```
 
-> Promote the latest preview to production.
+Theming and number/date formatting are centralized — styling lives in the app's `global.css` (use the `/design-system` skill), and a column's format string is set once and applied everywhere (axes, tooltips, labels, grid cells).
 
-4. **After your first production deployment**, tell Claude to allow-list the new domains for Supabase auth redirects:
+### 9. Deploy the data app
+> use terminal in `<AppName>/`
+```bash
+npx rayfin up
+```
 
-> Add my Vercel production domain and the `*.vercel.app` preview wildcard to the Supabase auth redirect URL allow-list.
+This builds the app, uploads the static files to OneLake, and creates/updates the Fabric App item. Open it in the Fabric portal under your Entra identity.
 
-The Supabase MCP installed in step 3 lets Claude configure this directly.
+> **Note:** Apps connected to a semantic model currently run **inside the Fabric portal only** — opening them in a standalone browser window causes the visual queries to error. This is a temporary Fabric limitation.
+
+### 10. Document
+
+When finished, ask Claude to overwrite this `README.md` with a proper one that fully documents your data app.
 
 ## Folder Structure
 
 ```
-├── app/                 # Next.js App Router
-│   ├── auth/            # login / sign-up / forgot-password routes
-│   ├── protected/       # authenticated routes
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/          # React components
-│   ├── ui/              # shadcn/ui primitives
-│   ├── tutorial/        # onboarding walkthrough
-│   └── *-form.tsx       # auth forms, theme switcher, etc.
-├── lib/
-│   ├── supabase/        # browser + server Supabase clients
-│   └── utils.ts
-├── product-plan/
-│   ├── prompts/        # contains one-shot or section prompt for Claude
-│   ├── ...             # in addition to many other folders related to your product plan and design
-├── proxy.ts             # Supabase auth cookie proxy
-├── components.json      # shadcn/ui config
-├── tailwind.config.ts
-├── next.config.ts
-├── tsconfig.json
-├── .env.example
-└── package.json
+.claude/
+  settings.json                # Claude Code marketplace + plugin configuration
+  skills/
+    design-system/             # /design-system — branding → central style file + reference page
+    prd-creator/               # /prd-creator — interview → PRD + milestone prompts
+CLAUDE.md                      # Semantic-model + data-app conventions for Claude
+setup.sh                      # Initializes the {{ProjectName}} scaffold
+src/
+  {{ProjectName}}.SemanticModel/   # TMDL semantic model (self-contained, deployable)
+    definition.pbism            # Semantic model properties
+    definition/
+      database.tmdl             # Compatibility level
+      model.tmdl                # Model manifest (table refs, culture, options)
+      expressions.tmdl          # Parameterized SQL Server connection
+      relationships.tmdl        # All model relationships
+      tables/
+        Calendar.tmdl           # Standard calendar dimension
+  .bpa/
+    bpa.ps1                     # BPA validation script (semantic model)
+    bpa-rules-semanticmodel.json
+docs/
+  data/                         # Source data samples + metadata-template.md
+<AppName>/                      # Rayfin data app — scaffolded as a subfolder in step 4 (its own
+                                #   package.json, fabric.yaml, AI files; runs npm run dev / npx rayfin up)
 ```
+
+The template ships without `<AppName>/`; step 4 scaffolds it into your repo as a self-contained Rayfin project, giving you a monorepo of semantic model (`src/`) + data app (`<AppName>/`).
+
+## Theming
+
+There is no Power BI report layer and no report theme JSON — visualization lives entirely in the data app. The app's look and feel is driven by the Rayfin scaffold's central `global.css`. Use the **`/design-system`** skill (or ask Claude directly) to set brand color and fonts; changes flow from that one file to every card, chart, grid, and tooltip.

@@ -1,0 +1,5 @@
+/// SQL Server instance hosting the data warehouse
+expression Parameter_Server = "localhost" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+/// Target database name
+expression Parameter_Database = "{{ProjectName}}" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]

@@ -1,17 +1,18 @@
-# Tech stack & starter template
+# Tech stack (fixed)
 
-**First, detect what's already there.** Without asking the user, check the codebase:
+For a Fabric Data App the stack is **already determined** — there is nothing to detect or choose. State it plainly so the user knows it's settled, then move on. Don't scan for Rails/Next/etc., and don't offer stack alternatives.
 
-1. Read `CLAUDE.md` and/or `AGENTS.md` if either exists — these often spell out the stack and conventions.
-2. Look at top-level config files: `Gemfile`, `package.json`, `composer.json`, `requirements.txt`, `pyproject.toml`, `go.mod`, `Cargo.toml`, etc.
-3. Look at folder structure for framework signatures (`app/`, `config/`, `db/migrate/` for Rails; `pages/` or `app/` for Next.js; `src/` patterns; etc.)
-4. Note any starter template signatures. If the codebase looks like the **Build New** starter (Rails 8 + Inertia + React 19 + Tailwind + shadcn + PostgreSQL + Solid Queue + the standard `AppShell` and authenticated routes), call that out specifically.
+The stack:
 
-**Then summarize what you found** to the user in plain language: "Looks like you're working in a Rails app with React on the frontend, using the Build New starter template. That gives you user signup/login, the app shell, dark mode, and a job queue out of the box."
+- **Data app:** the Microsoft Rayfin template — Vite + React + TypeScript + Tailwind v4, with [Vega-Lite](https://vega.github.io/vega-lite/) for visuals. Run with npm, deployed to Microsoft Fabric (OneLake) via `npx rayfin up`.
+- **Data source:** a **Power BI semantic model**, queried live via the Execute DAX Queries REST API. The app connects using the model's share link; row-level security and Build/Read permissions carry through automatically.
 
-**If detection is empty or ambiguous** (no clear stack found, or this is a fresh empty project), recommend the Build New template as the default and explain in plain language what it gives them. Use AskUserQuestion to confirm or override:
-- Use Build New (recommended)
-- Use a different stack — I'll specify in chat
-- I'm not sure — explain my options
+**Then lock what's already provided** so the PRD doesn't re-spec it. The Rayfin data-app template plus the `/design-system` skill already give you, out of the box:
 
-**Then, the starter template question.** Ask what's already built into the starter that the PRD shouldn't re-spec. Default proposal based on Build New: signup/login/password reset, the User model, the authenticated app shell, settings/profile pages, dark mode, email previews in development, background job queue. Ask them to confirm or add to this list.
+- Fabric authentication and live connectivity to the semantic model (no sign-in screen to design)
+- Preconfigured visual primitives (bar, line, area, scatter, pie/donut, heatmap, bubble, waterfall, KPI cards) with cross-highlighting
+- A data grid (sortable, formatted columns, custom cell renderers)
+- Centralized theming via one style file, and per-column format strings applied everywhere
+- Playwright browser validation before publish
+
+Briefly confirm with the user that they have (or will create) the semantic model to connect to, and that they can get its share link. That's the only "setup" decision here — everything else is fixed.

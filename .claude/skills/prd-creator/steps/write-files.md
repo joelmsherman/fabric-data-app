@@ -26,7 +26,7 @@ _build_plan/
     ...
 ```
 
-`{milestone-slug}` is a short kebab-case name derived from the milestone (e.g., `core-crud`, `integrations-layer`, `public-docs`).
+`{milestone-slug}` is a short kebab-case name derived from the milestone — usually the page (e.g., `sales-overview`, `product-detail`, `app-shell`).
 
 After writing the `_build_plan/` files, also add a short note about the `_build_plan/` folder to the project's agent instructions file — see "Agent instructions note" below.
 
@@ -53,19 +53,19 @@ Mirror the structure of a high-quality real PRD. Use these sections in order:
 
 ## What we're building
 
-{1–3 sentence core purpose, expanded with a paragraph or two of context. End with a sentence on the tech stack and how the build is structured around milestones.}
+{1–3 sentence core purpose, expanded with a paragraph or two of context. End with a sentence noting it's a Fabric Data App over a Power BI semantic model, and that the build is structured one milestone per page.}
 
 ---
 
-### What the app does
+### Dashboard pages
 
-{Bulleted list of the high-level user-facing capabilities, written from the user's perspective. 5–10 bullets.}
+{The locked page inventory, in priority order. One bullet per page: the page name and a one-line description of the decision/question it serves. Per-page detail (visuals, measures, interactions) lives in the milestones below.}
 
 ---
 
-### Already provided by the {starter template name, or "existing codebase"}
+### Already provided by the Rayfin data-app template
 
-{Bulleted list of what's already built and does not need to be re-specced.}
+{Bulleted list of what the Rayfin template + /design-system already give you and that the PRD does not re-spec: Fabric auth and live model connectivity, the visual primitives with cross-highlighting, the data grid, centralized theming, per-column format strings, Playwright validation.}
 
 ---
 
@@ -75,9 +75,9 @@ Mirror the structure of a high-quality real PRD. Use these sections in order:
 
 ---
 
-### Data model
+### Semantic data model
 
-{For each entity, a heading and a bullet list of fields described in plain language — what the app needs to remember about this thing, not the database column types or constraints. Note relationships in prose between entities or at the end. Keep this conceptual, not technical: "url — the link being saved", not "url: string, not null, indexed."}
+{The conceptual Power BI semantic model behind the pages, as a star schema. Use sub-headings: **Facts** (the numeric tables and what measures they feed), **Dimensions** (the things users slice by, including a Date dimension), **Relationships** (one line each, e.g. "Product (1) → (many) Sales"), and **Key measures** (each headline calculation named with a one-line plain-language meaning). Conceptual only — name the measure ("Total Sales — sum of line-item revenue"), never the DAX.}
 
 ---
 
@@ -87,15 +87,15 @@ Mirror the structure of a high-quality real PRD. Use these sections in order:
 
 ### What gets built
 
-{Bulleted list of user-facing capabilities and screens delivered in this milestone. Describe what the user can do, see, or experience when this milestone is done — not the technical pieces (controllers, models, jobs) needed to deliver it. The agent will figure out the technical pieces in plan mode.}
+{The page this milestone delivers, from the per-page spec: the measures/KPIs shown, the visuals presenting them, the dimensions the user can slice/filter by, and the interactions (cross-highlighting, slicers). Describe what the user sees and does on the page — not the DAX, Vega-Lite specs, or component wiring. The agent figures those out in plan mode.}
 
 ### What milestone {N} explicitly does NOT include
 
-{Bulleted list of things a coder might assume should be in this milestone but aren't.}
+{Bulleted list of things a coder might assume should be in this milestone but aren't — drill-through, extra breakdowns, other pages, etc.}
 
 ### Done when
 
-{1–2 sentences describing the verification criteria — what the user should be able to do in the browser when this milestone is complete.}
+{1–2 sentences describing the verification criteria — what the user should see and be able to do on this page when previewing with `npm run dev`.}
 
 ---
 
@@ -118,8 +118,9 @@ You are entering plan mode to plan and then build milestone {N} of this project.
 
 ## Context
 
-- Read `@{PRD_PATH}` for the full project context, scope, data model, and tech stack.
-- Read previous milestone folders (`@_build_plan/milestones/1-*/milestone-log.md`, etc.) to understand what has already been built. If you are working on milestone 1, there is no prior milestone to read.
+- Read `@{PRD_PATH}` for the full project context, scope, semantic data model, and the per-page spec for this milestone's page.
+- This page queries the Power BI semantic model via its **share link** — use the link the user provides (it carries the workspace and model IDs). If you don't have it, ask before building the visuals.
+- Build the page in the Rayfin data app (the `<AppName>/` subfolder), using the template's visual primitives and centralized theming. Read previous milestone folders (`@_build_plan/milestones/1-*/milestone-log.md`, etc.) to reuse measures/dimensions already wired up. If this is milestone 1, there is no prior milestone to read.
 
 ## Your task
 
@@ -155,9 +156,9 @@ Do not treat `_build_plan/` as long-living documentation for the codebase. The c
 
 ## Style notes for the PRD output
 
-- Mirror the voice of a sharp product spec: concrete, specific, opinionated. Not "the app should probably support X" but "the app supports X."
-- Per-feature scoping is specific about user-facing behavior: what the user sees on screen, what they can do, what they cannot do, what the output looks like. It is NOT specific about technical implementation (timeouts, libraries, error-handling patterns, parsing logic) — that's the agent's job in plan mode.
+- Mirror the voice of a sharp product spec: concrete, specific, opinionated. Not "the page should probably show X" but "the page shows X."
+- Per-page specs are specific about analytical behavior: the measures shown, what the user can slice by, the visuals, the interactions. They are NOT specific about technical implementation (DAX, Vega-Lite internals, component wiring) — that's the agent's job in plan mode.
 - The "Out of scope" lists are valuable — never skip them, never make them generic.
-- Data model fields are described in plain language (what the app needs to remember), not as database column definitions.
-- When referring to the starter template features, use the actual names if known (e.g., "Build New starter" rather than "the starter template").
+- The semantic data model is described in plain language (facts, dimensions, relationships, and measures with their meaning), never as DAX or TMDL.
+- Refer to the starter as "the Rayfin data-app template" and the data source as "the Power BI semantic model."
 - These style notes apply to both formats. The HTML version uses the same locked content as the markdown — it's a different presentation, not a different scope.

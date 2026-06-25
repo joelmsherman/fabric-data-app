@@ -63,13 +63,13 @@ Start every `prd.html` from this scaffold. Fill in the `{{PLACEHOLDERS}}` and se
       </div>
     </section>
 
-    <!-- WHAT THE APP DOES -->
+    <!-- DASHBOARD PAGES -->
     <section>
       <h2 class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>What the app does
+        <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>Dashboard pages
       </h2>
       <ul class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 list-none p-0">
-        {{FEATURE_CARDS}}
+        {{PAGE_CARDS}}
       </ul>
     </section>
 
@@ -93,25 +93,19 @@ Start every `prd.html` from this scaffold. Fill in the `{{PLACEHOLDERS}}` and se
       </ul>
     </section>
 
-    <!-- INTEGRATIONS (omit section entirely if no integrations) -->
+    <!-- SEMANTIC DATA MODEL -->
     <section>
       <h2 class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-        <i data-lucide="plug" class="w-3.5 h-3.5"></i>External integrations
+        <i data-lucide="database" class="w-3.5 h-3.5"></i>Semantic data model
       </h2>
-      <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {{INTEGRATION_CARDS}}
-      </div>
-    </section>
-
-    <!-- DATA MODEL -->
-    <section>
-      <h2 class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-        <i data-lucide="database" class="w-3.5 h-3.5"></i>Data model
-      </h2>
-      <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">What the app needs to remember.</p>
+      <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">The star schema behind the pages — facts, dimensions, and the key measures.</p>
       <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
         {{ENTITY_CARDS}}
       </div>
+      <h3 class="mt-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5"><i data-lucide="sigma" class="w-3 h-3"></i>Key measures</h3>
+      <ul class="mt-3 space-y-2 list-none p-0">
+        {{MEASURE_ITEMS}}
+      </ul>
     </section>
 
     <!-- MILESTONES -->
@@ -162,9 +156,9 @@ One badge per item (framework, database, hosting, key libraries from the locked 
 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300">{{TECH_NAME}}</span>
 ```
 
-### Feature card — `{{FEATURE_CARDS}}`
+### Page card — `{{PAGE_CARDS}}`
 
-One `<li>` per high-level capability from "What the app does". Pick a sensible Lucide icon per item (see icon hints below).
+One `<li>` per dashboard page from the page inventory, in priority order. Pick a sensible Lucide icon per page (see icon hints below).
 
 ```html
 <li class="print-card rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
@@ -173,8 +167,8 @@ One `<li>` per high-level capability from "What the app does". Pick a sensible L
       <i data-lucide="{{LUCIDE_ICON}}" class="w-4 h-4 text-zinc-700 dark:text-zinc-300"></i>
     </div>
     <div>
-      <p class="font-medium text-zinc-900 dark:text-zinc-100">{{FEATURE_LABEL}}</p>
-      <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{{FEATURE_DESCRIPTION}}</p>
+      <p class="font-medium text-zinc-900 dark:text-zinc-100">{{PAGE_LABEL}}</p>
+      <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{{PAGE_DESCRIPTION}}</p>
     </div>
   </div>
 </li>
@@ -199,35 +193,16 @@ One pill per pre-built capability.
 </li>
 ```
 
-### Integration card — `{{INTEGRATION_CARDS}}`
+### Fact / dimension card — `{{ENTITY_CARDS}}`
 
-One per external service. List the credentials the user must obtain.
-
-```html
-<div class="print-card rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-  <div class="flex items-center gap-2">
-    <i data-lucide="plug" class="w-4 h-4 text-zinc-500 dark:text-zinc-400"></i>
-    <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">{{PROVIDER_NAME}}</h3>
-    <span class="ml-auto text-xs text-zinc-500 dark:text-zinc-400">{{PURPOSE}}</span>
-  </div>
-  <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{{PLAIN_LANGUAGE_EXPLANATION}}</p>
-  <p class="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5"><i data-lucide="key" class="w-3 h-3"></i>Credentials needed</p>
-  <ul class="mt-2 space-y-1.5 list-none p-0">
-    <!-- repeat per credential -->
-    <li class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><i data-lucide="key-round" class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500"></i>{{CREDENTIAL_NAME}}</li>
-  </ul>
-</div>
-```
-
-### Entity card — `{{ENTITY_CARDS}}`
-
-One card per entity in the data model. The table holds fields described in plain language (not column types). The "Related to" footer lists other entity names.
+One card per table in the semantic model — facts and dimensions. The table holds fields described in plain language (not column types). Tag each card as a Fact or Dimension. The "Related to" footer lists the tables it relates to.
 
 ```html
 <div class="print-card rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
   <div class="flex items-center gap-2">
     <i data-lucide="box" class="w-4 h-4 text-zinc-500 dark:text-zinc-400"></i>
     <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ENTITY_NAME}}</h3>
+    <span class="ml-auto text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{{FACT_OR_DIMENSION}}</span>
   </div>
   <table class="mt-4 w-full text-sm">
     <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -240,6 +215,17 @@ One card per entity in the data model. The table holds fields described in plain
   </table>
   <p class="mt-4 text-xs text-zinc-500 dark:text-zinc-400"><span class="font-semibold uppercase tracking-[0.14em] text-[11px]">Related to</span> · {{RELATIONSHIPS}}</p>
 </div>
+```
+
+### Measure item — `{{MEASURE_ITEMS}}`
+
+One per key measure. Name plus a one-line plain-language meaning — never the DAX.
+
+```html
+<li class="flex items-start gap-3">
+  <i data-lucide="sigma" class="w-4 h-4 mt-0.5 shrink-0 text-zinc-400 dark:text-zinc-500"></i>
+  <span class="text-zinc-700 dark:text-zinc-300"><span class="font-medium">{{MEASURE_NAME}}</span><span class="text-zinc-500 dark:text-zinc-400"> — {{MEASURE_MEANING}}</span></span>
+</li>
 ```
 
 ### Milestone card — `{{MILESTONE_CARDS}}`
@@ -285,20 +271,17 @@ One per milestone, in order. The two-column "What gets built" / "Not in this mil
 
 Pick icons that fit the meaning. Common safe choices:
 
-- Feature cards: `zap`, `users`, `mail`, `bell`, `search`, `tag`, `bookmark`, `file-text`, `calendar`, `lock`, `link`, `image`, `message-square`, `share-2`, `download`, `upload`, `play`, `wand-2`, `pencil`, `eye`
-- Auth/users: `user`, `user-plus`, `shield`, `lock`, `log-in`
-- Data/storage: `database`, `box`, `archive`, `folder`
-- AI/automation: `wand-2`, `sparkles`, `bot`, `cpu`
-- Communication: `mail`, `send`, `message-square`, `phone`
-- Money/billing: `credit-card`, `dollar-sign`, `receipt`
+- Page cards: `layout-dashboard`, `bar-chart-3`, `line-chart`, `pie-chart`, `trending-up`, `activity`, `gauge`, `table`, `map`, `calendar`, `target`, `list`, `users`, `package`, `dollar-sign`
+- Facts/measures: `sigma`, `dollar-sign`, `hash`, `percent`, `trending-up`
+- Dimensions/tables: `box`, `database`, `calendar`, `tag`, `folder`, `map-pin`, `users`
 - If unsure, use `circle-dot` — never invent icon names.
 
 ## Style and voice notes
 
 - **Keep prose tight.** Cards lose their value if they're stuffed with sentences. One line label + one short description sentence per feature card.
-- **Don't add scope.** HTML is purely presentation. Never invent features, data fields, milestones, or integrations to "fill out" a card grid. If the PRD section is short, render fewer cards — empty white space is fine.
+- **Don't add scope.** HTML is purely presentation. Never invent pages, measures, data fields, or milestones to "fill out" a card grid. If the PRD section is short, render fewer cards — empty white space is fine.
 - **No emoji.** Use Lucide icons only.
 - **No section IDs needed.** This is single-page, scroll-only — no table of contents, no anchor links, no `id` attributes required.
-- **Omit empty sections.** If a PRD has no external integrations, delete the entire integrations `<section>` block — don't render an empty one.
+- **Omit empty sections.** If a section has no content, delete that entire `<section>` block — don't render an empty one.
 - **Section spacing.** The outer `<main>` already has `space-y-14`. Inside cards, use the spacing in the snippets as-is.
 - **Same content as markdown PRD.** When the user picked **Both**, the HTML and markdown must describe the same scope. The HTML is a different presentation of the same locked decisions, never a different plan.

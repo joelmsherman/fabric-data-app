@@ -1,0 +1,17 @@
+{
+  "enabledPlugins": {
+    "fabric-cli@power-bi-agentic-development": true,
+    "pbip@power-bi-agentic-development": true,
+    "semantic-models@power-bi-agentic-development": true,
+    "tabular-editor@power-bi-agentic-development": true
+  },
+  "extraKnownMarketplaces": {
+    "power-bi-agentic-development": {
+      "source": {
+        "source": "github",
+        "repo": "data-goblin/power-bi-agentic-development"
+      },
+      "autoUpdate": true
+    }
+  }
+}
