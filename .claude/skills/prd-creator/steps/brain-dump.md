@@ -1,6 +1,6 @@
 # Brain dump intake
 
-If the user's first message is already a substantive description of the dashboard/app they want, you have your brain dump — proceed to the Core purpose phase. If their first message is just "help me plan a data app" or similar, ask them to describe in their own words: what business questions should the dashboard answer, who uses it, and what decisions it should support. Free-form text response, no AskUserQuestion needed here.
+If the user's first message is already a substantive description of the dashboard/app they want, you have your brain dump — proceed to the Design inputs phase. If their first message is just "help me plan a data app" or similar, ask them to describe in their own words: what business questions should the dashboard answer, who uses it, and what decisions it should support. Free-form text response, no AskUserQuestion needed here.
 
 Also pull in context that's likely already in the repo:
 

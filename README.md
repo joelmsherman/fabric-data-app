@@ -8,10 +8,11 @@ A [Fabric Data App](https://learn.microsoft.com/en-gb/fabric/apps/data-apps-temp
 
 Data apps are scaffolded and deployed with the **[Rayfin CLI](https://www.npmjs.com/package/@microsoft/rayfin)** (a Vite + React + Tailwind v4 stack, driven here with npm). This template doesn't replace that scaffold — it wraps the whole lifecycle around it:
 
-1. **Plan** the product with the `/prd-creator` skill.
-2. **Build & deploy the semantic model** the data app reads from — authored as TMDL source under `src/`, validated with the Best Practice Analyzer, and deployed to a Fabric workspace via the Power BI plugins and Fabric CLI.
-3. **Create the App item in Fabric, then scaffold it** into an `<AppName>/` subfolder with the Rayfin CLI, style it with the `/design-system` skill, and build its visuals as DAX + Vega-Lite + React.
-4. **Validate** DAX via Tabular Editor and **deploy** with `npx rayfin up`.
+1. **Plan** the product with the `/prd-creator` skill — a full PRD for you and the agents, a client-friendly PRD for review, and a design brief for the mockset.
+2. **Design** the mockset in [Claude Design](https://claude.ai/design) from that brief, using the client's design system; iterate to client approval. The approved mockset becomes the visual source of truth for the build.
+3. **Build & deploy the semantic model** the data app reads from — authored as TMDL source under `src/`, validated with the Best Practice Analyzer, and deployed to a Fabric workspace via the Power BI plugins and Fabric CLI.
+4. **Create the App item in Fabric, then scaffold it** into an `<AppName>/` subfolder with the Rayfin CLI, codify the approved mockset with the `/design-system` skill, and build its visuals as DAX + Vega-Lite + React.
+5. **Validate** DAX via Tabular Editor and **deploy** with `npx rayfin up`.
 
 The development model is **source-first and agent-assisted**: both the semantic model and the data app live as code under source control, and Claude Code does the heavy lifting on TMDL authoring, DAX, visual specs, and deployment.
 
@@ -111,9 +112,19 @@ Place source data samples under `docs/data/` and describe them using `docs/data/
 
 Invoke the `/prd-creator` skill and provide Claude with the intake meeting transcript; ask Claude in the prompt to review `docs/data` so that it can ground the plan for the semantic model.
 
+The skill writes everything to `_build_plan/`:
+
+- `prd.md` — the full PRD, consumed by you and the milestone coding agents
+- `prd.html` — the client-friendly PRD; open it in a browser and send it to the client for review
+- `design-brief.md` — a paste-ready brief for Claude Design (next step)
+- `design-handoff.md` — a stub where the approved mockset link goes after sign-off
+- `milestones/N-{slug}/prompt.md` — one build prompt per dashboard page
+
 ### 2. Design mocks
 
-Provide the PRD and a Design System to [Claude Design](claude.ai/design) and create contained high-fidelity interactive mocks for the client to review along with the PRD. Iterate here with client until final approval.
+Once the client approves the PRD, paste `_build_plan/design-brief.md` into [Claude Design](https://claude.ai/design) — along with the client's design system, if they have one there — and create contained high-fidelity interactive mocks. Iterate with the client until final approval.
+
+When approved, **paste the mockset's handoff/share URL into `_build_plan/design-handoff.md`**. The `/design-system` skill (step 7) and every milestone prompt (step 8) read it from there.
 
 ### 3. Build the semantic model
 
@@ -163,11 +174,11 @@ npx rayfin ai-files install
 
 ### 7. Set up the design system
 
-From your **repo-root Claude session**, invoke the **`/design-system`** skill (it operates on the `<AppName>/` app files). Claude asks three quick picks — brand color, display font, body font — then scaffolds a central style file and a live reference page that future agents defer to (Tailwind v4).
+From your **repo-root Claude session**, invoke the **`/design-system`** skill (it operates on the `<AppName>/` app files). Claude detects the approved mockset link in `_build_plan/design-handoff.md`, extracts the brand color and fonts from the mockset, confirms them with you, then scaffolds a central style file and a live reference page that future agents defer to (Tailwind v4). If there's no mockset, it falls back to three quick picks — brand color, display font, body font.
 
 ### 8. Build solution milestone by milestone
 
-Hand Claude the first milestone prompt, the **model share link**, and the handoff link from Claude Design.
+Hand Claude the first milestone prompt and the **model share link** — the prompt already points at the PRD and the approved mockset via `_build_plan/design-handoff.md`.
 
 Iterate locally:
 > use terminal in `<AppName>/`
@@ -197,8 +208,8 @@ When finished, ask Claude to overwrite this `README.md` with a proper one that f
 .claude/
   settings.json                # Claude Code marketplace + plugin configuration
   skills/
-    design-system/             # /design-system — branding → central style file + reference page
-    prd-creator/               # /prd-creator — interview → PRD + milestone prompts
+    design-system/             # /design-system — approved mockset (or brand picks) → central style file + reference page
+    prd-creator/               # /prd-creator — interview → PRDs (full + client) + design brief + milestone prompts
 CLAUDE.md                      # Semantic-model + data-app conventions for Claude
 setup.sh                      # Initializes the {{ProjectName}} scaffold
 src/
@@ -224,4 +235,4 @@ The template ships without `<AppName>/`; step 4 scaffolds it into your repo as a
 
 ## Theming
 
-There is no Power BI report layer and no report theme JSON — visualization lives entirely in the data app. The app's look and feel is driven by the Rayfin scaffold's central `global.css`. Use the **`/design-system`** skill (or ask Claude directly) to set brand color and fonts; changes flow from that one file to every card, chart, grid, and tooltip.
+There is no Power BI report layer and no report theme JSON — visualization lives entirely in the data app. The client-approved Claude Design mockset (linked in `_build_plan/design-handoff.md`) is the design source of truth; the **`/design-system`** skill codifies it once into the app's central style file, and changes flow from that one file to every card, chart, grid, and tooltip. Without a mockset, the skill sets brand color and fonts from quick picks instead.

@@ -81,6 +81,7 @@ Each visual is typically three files that work together:
 - `*.tsx` — a React component that binds the DAX query to the Vega-Lite spec
 
 ### Theming & format strings (app layer)
+- The client-approved Claude Design mockset (linked in `_build_plan/design-handoff.md`) is the visual source of truth; the design system codifies it — match the mocks using design-system tokens and `components/ui/` primitives, never ad-hoc styles copied from the mock
 - Theming is centralized in the app's `global.css`; make styling changes there so they flow to every card, chart, grid, and tooltip — do not restyle components piecemeal
 - Define a column's **format string once** (per the semantic model / column metadata); the template applies it everywhere that column appears (axes, tooltips, data labels, grid cells). Keep currency/percent/number formatting consistent across all visuals
 
@@ -114,8 +115,8 @@ Repo-local skills (in `.claude/skills/`):
 
 | Skill | Purpose |
 |-------|---------|
-| `/prd-creator` | Interview-driven PRD + milestone prompts for the data app |
-| `/design-system` | Brand color + fonts → central style file and a live reference page (Tailwind v4) |
+| `/prd-creator` | Interview → full + client PRDs, Claude Design brief, and milestone prompts for the data app |
+| `/design-system` | Approved Claude Design mockset (or brand picks) → central style file and a live reference page (Tailwind v4) |
 
 ## Workflows
 
