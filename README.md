@@ -1,6 +1,6 @@
 # Fabric Data App Template
 
-A GitHub template for full-lifecycle development of **Microsoft Fabric Data Apps** with Claude Code — from client intake and PRD through design mocks, build, and deployment. The Power BI semantic model behind the app is built separately, from the sibling [`fabric-semantic-model`](https://github.com/joelmsherman/fabric-semantic-model) template.
+A GitHub template for full-lifecycle development of **Microsoft Fabric Data Apps** and their **Power BI Semantic Models** behind them, with Claude Code. 
 
 ## Introduction
 
@@ -8,13 +8,13 @@ A [Fabric Data App](https://learn.microsoft.com/en-gb/fabric/apps/data-apps-temp
 
 Data apps are scaffolded and deployed with the **[Rayfin CLI](https://www.npmjs.com/package/@microsoft/rayfin)** (a Vite + React + Tailwind v4 stack, driven here with npm). This template doesn't replace that scaffold — it wraps the whole lifecycle around it:
 
-1. **Plan** the product with the `/prd-creator` skill — a full PRD for you and the agents, a client-friendly PRD for review, a design brief for the mockset, and a portable model spec for the semantic-model repo.
+1. **Plan** the product with the `/prd-creator` skill — a full PRD for you and the agents, a client-friendly PRD for review, and a design brief for the mockset.
 2. **Design** the mockset in [Claude Design](https://claude.ai/design) from that brief, using the client's design system; iterate to client approval. The approved mockset becomes the visual source of truth for the build.
-3. **Build & deploy the semantic model** the data app reads from — in a **separate repo** created from the [`fabric-semantic-model`](https://github.com/joelmsherman/fabric-semantic-model) template. Bring `_build_plan/model-spec.md` and your `docs/data/` there; come back with the model's **share link**.
+3. **Build & deploy the semantic model** the data app reads from — authored as TMDL source under `src/`, validated with the Best Practice Analyzer, and deployed to a Fabric workspace via the Power BI plugins and Fabric CLI.
 4. **Create the App item in Fabric, then scaffold it** into an `<AppName>/` subfolder with the Rayfin CLI, codify the approved mockset with the `/design-system` skill, and build its visuals as DAX + Vega-Lite + React.
 5. **Validate** DAX via Tabular Editor and **deploy** with `npx rayfin up`.
 
-The development model is **source-first and agent-assisted**: the data app lives as code under source control, and Claude Code does the heavy lifting on DAX, visual specs, and deployment.
+The development model is **source-first and agent-assisted**: both the semantic model and the data app live as code under source control, and Claude Code does the heavy lifting on TMDL authoring, DAX, visual specs, and deployment.
 
 ## Requirements
 
@@ -28,11 +28,11 @@ Install Claude Code per the [official instructions](https://docs.claude.com/en/d
 
 ### Rayfin CLI
 
-Run later at the project root, after the semantic model is deployed and you're ready to scaffold the app.
+Run later at the project root, after the semantic model is complete and you're ready to scaffold the app.
 
 ### Fabric CLI
 
-The [Fabric CLI](https://microsoft.github.io/fabric-cli/) (`fab`) is used to discover workspace/model IDs and for workspace operations. Install and authenticate:
+The [Fabric CLI](https://microsoft.github.io/fabric-cli/) (`fab`) is used to discover workspace/model IDs and deploy the semantic model. Install and authenticate:
 
 ```bash
 pip install ms-fabric-cli
@@ -41,15 +41,26 @@ fab auth login
 
 ### Tabular Editor
 
-Used to browse the model schema and validate DAX before wiring it into visuals. See [tabulareditor.com](https://www.tabulareditor.com/).
+Used to browse the model schema and validate DAX before wiring it into visuals. The BPA script (below) also auto-downloads the portable build. See [tabulareditor.com](https://www.tabulareditor.com/).
+
+### PowerShell 7+
+
+Required for the BPA validation script. Install via [the official instructions](https://learn.microsoft.com/powershell/scripting/install/installing-powershell).
+
+### Power BI Desktop (optional)
+
+The semantic model is authored as TMDL (via Tabular Editor and the Power BI plugins), so Power BI Desktop isn't required. If you prefer to author or preview the model visually, enable Developer Mode so it saves as TMDL:
+- **File** > **Options and settings** > **Options** > **Preview features**
+- Enable **Power BI project (.pbip) save option**
 
 ### Claude Code Plugins
 
-The `.claude/settings.json` in this template points to the [`data-goblin/power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development) marketplace and pre-enables three plugins (model-authoring and report-authoring plugins are intentionally left off — the model is built in its own repo, and visualization lives in the data app):
+The `.claude/settings.json` in this template points to the [`data-goblin/power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development) marketplace and pre-enables four plugins (the report-authoring plugins are intentionally left off — visualization lives in the data app):
 
 - `fabric-cli` — Fabric workspace and deployment operations
-- `semantic-models` — DAX authoring/performance and lineage tracing
-- `tabular-editor` — DAX validation against the deployed model
+- `pbip` — PBIP project structure and rename cascading
+- `semantic-models` — model review, naming, DAX, Power Query, lineage
+- `tabular-editor` — BPA rules and DAX validation
 
 On your first `claude` launch in the cloned project, accept the marketplace trust prompt; the plugins install (and auto-update) from there.
 
@@ -63,18 +74,27 @@ On your first `claude` launch in the cloned project, accept the marketplace trus
 ## Getting Started
 
 ```bash
-# Clone from this template (or use GitHub's "Use this template")
+# Clone from this template
 git clone https://github.com/joelmsherman/fabric-data-app.git my-data-app
 cd my-data-app
 
 # Remove the template remote
 git remote remove origin
 
+# Initialize the semantic-model scaffold — renames {{ProjectName}} tokens across
+# src/, CLAUDE.md, and expressions.tmdl, and sets the SQL connection params (if applicable)
+./setup.sh "ProjectName" "DatabaseName" "ServerName"
+
 # Launch Claude Code (accept the marketplace trust prompt on first run)
 claude
 ```
 
-No init script is needed — naming comes later from the Fabric App item you create in step 4 (`<AppName>`).
+`./setup.sh` arguments:
+- `ProjectName` (required) — name for the semantic-model project
+- `DatabaseName` (optional, defaults to `ProjectName`) — SQL Server database name
+- `ServerName` (optional, defaults to `localhost`) — SQL Server instance
+
+The semantic model under `src/<ProjectName>.SemanticModel/` is authored as TMDL — edit it with Claude (the Power BI plugins) or open it in Tabular Editor as you develop.
 
 ## Workflow
 
@@ -98,22 +118,33 @@ The skill writes everything to `_build_plan/`:
 - `prd.html` — the client-friendly PRD; open it in a browser and send it to the client for review
 - `design-brief.md` — a paste-ready brief for Claude Design (next step)
 - `design-handoff.md` — a stub where the approved mockset link goes after sign-off
-- `model-spec.md` — a portable semantic-model handoff, copied into the model repo in step 3
 - `milestones/N-{slug}/prompt.md` — one build prompt per dashboard page
 
 ### 2. Design mocks
 
 Once the client approves the PRD, paste `_build_plan/design-brief.md` into [Claude Design](https://claude.ai/design) — along with the client's design system, if they have one there — and create contained high-fidelity interactive mocks. Iterate with the client until final approval.
 
-When approved, **paste the mockset's handoff/share URL into `_build_plan/design-handoff.md`**. The `/design-system` skill (step 5) and every milestone prompt (step 6) read it from there.
+When approved, **paste the mockset's handoff/share URL into `_build_plan/design-handoff.md`**. The `/design-system` skill (step 7) and every milestone prompt (step 8) read it from there.
 
-### 3. Build & deploy the semantic model (separate repo)
+### 3. Build the semantic model
 
-The model lives in its own repo, created from the [`fabric-semantic-model`](https://github.com/joelmsherman/fabric-semantic-model) template:
+Provide the PRD to Claude along with `docs/data` and ask Claude to build the semantic model including facts, dimensions, relationships and key measures necessary to achieve the product objectives.
 
-1. Create a repo from that template and run its `./setup.sh`.
-2. Copy `_build_plan/model-spec.md` and your `docs/data/` samples into it.
-3. Build the model there (TMDL), validate it with BPA, and deploy it to a Fabric workspace — the model repo's README walks through it.
+### 4. Validate the model
+
+Validate the model against the BPA rule set (first run downloads the Tabular Editor portable):
+
+```bash
+pwsh src/.bpa/bpa.ps1 -src "src"
+```
+
+### 5. Deploy the semantic model & get its share link
+
+Authenticate, then ask Claude to deploy to a Fabric workspace where you're a member (uses `/fabric-cli`):
+
+```bash
+fab auth login
+```
 
 Once deployed, copy the model's **share link** from the Power BI Service — the URL contains the workspace ID and model ID and is how the data app connects, e.g.:
 
@@ -121,11 +152,11 @@ Once deployed, copy the model's **share link** from the Power BI Service — the
 https://app.powerbi.com/groups/<workspace-id>/modeling/<model-id>/modelView
 ```
 
-### 4. Create the Fabric App item, then scaffold it locally
+### 6. Create the Fabric App item, then scaffold it locally
 
 The App item must exist in Fabric **before** you scaffold. In the Fabric portal, open your workspace and select **New item → App** ([create-app steps 1–3](https://learn.microsoft.com/en-gb/fabric/apps/create-app)), give it a name — this becomes your `<AppName>` — and select **Create**.
 
-Then, **from the root of this repo**, run the command the portal shows you (it pre-fills the app name and workspace). Like any `npm create` scaffolder, it downloads the data app into a **new `<AppName>/` subfolder** next to `docs/` — keeping the planning artifacts and the app in one repo:
+Then, **from the root of this repo**, run the command the portal shows you (it pre-fills the app name and workspace). Like any `npm create` scaffolder, it downloads the data app into a **new `<AppName>/` subfolder** next to `src/` — making this repo a monorepo of semantic model + data app:
 
 ```bash
 npm create @microsoft/rayfin@latest -- "<AppName>" --template dataapp --workspace "<WorkspaceName>"
@@ -141,11 +172,11 @@ npx rayfin ai-files install
 >
 > **Keep your Claude session at the repo root** for all agent work — it can read and edit files under `<AppName>/` just fine, and only there does it see the skills and plugins. Use a terminal in `<AppName>/` only to run the shell commands (`npm run dev`, `npx rayfin up`).
 
-### 5. Set up the design system
+### 7. Set up the design system
 
 From your **repo-root Claude session**, invoke the **`/design-system`** skill (it operates on the `<AppName>/` app files). Claude detects the approved mockset link in `_build_plan/design-handoff.md`, extracts the brand color and fonts from the mockset, confirms them with you, then scaffolds a central style file and a live reference page that future agents defer to (Tailwind v4). If there's no mockset, it falls back to three quick picks — brand color, display font, body font.
 
-### 6. Build solution milestone by milestone
+### 8. Build solution milestone by milestone
 
 Hand Claude the first milestone prompt and the **model share link** — the prompt already points at the PRD and the approved mockset via `_build_plan/design-handoff.md`.
 
@@ -157,7 +188,7 @@ npm run dev      # preview at http://localhost:5173
 
 Theming and number/date formatting are centralized — styling lives in the app's `global.css` (use the `/design-system` skill), and a column's format string is set once and applied everywhere (axes, tooltips, labels, grid cells).
 
-### 7. Deploy the data app
+### 9. Deploy the data app
 > use terminal in `<AppName>/`
 ```bash
 npx rayfin up
@@ -167,7 +198,7 @@ This builds the app, uploads the static files to OneLake, and creates/updates th
 
 > **Note:** Apps connected to a semantic model currently run **inside the Fabric portal only** — opening them in a standalone browser window causes the visual queries to error. This is a temporary Fabric limitation.
 
-### 8. Document
+### 10. Document
 
 When finished, ask Claude to overwrite this `README.md` with a proper one that fully documents your data app.
 
@@ -178,15 +209,29 @@ When finished, ask Claude to overwrite this `README.md` with a proper one that f
   settings.json                # Claude Code marketplace + plugin configuration
   skills/
     design-system/             # /design-system — approved mockset (or brand picks) → central style file + reference page
-    prd-creator/               # /prd-creator — interview → PRDs (full + client) + design brief + model spec + milestone prompts
-CLAUDE.md                      # Data-app conventions for Claude
+    prd-creator/               # /prd-creator — interview → PRDs (full + client) + design brief + milestone prompts
+CLAUDE.md                      # Semantic-model + data-app conventions for Claude
+setup.sh                      # Initializes the {{ProjectName}} scaffold
+src/
+  {{ProjectName}}.SemanticModel/   # TMDL semantic model (self-contained, deployable)
+    definition.pbism            # Semantic model properties
+    definition/
+      database.tmdl             # Compatibility level
+      model.tmdl                # Model manifest (table refs, culture, options)
+      expressions.tmdl          # Parameterized SQL Server connection
+      relationships.tmdl        # All model relationships
+      tables/
+        Calendar.tmdl           # Standard calendar dimension
+  .bpa/
+    bpa.ps1                     # BPA validation script (semantic model)
+    bpa-rules-semanticmodel.json
 docs/
-  data/                        # Source data samples + metadata-template.md
-<AppName>/                     # Rayfin data app — scaffolded as a subfolder in step 4 (its own
-                               #   package.json, fabric.yaml, AI files; runs npm run dev / npx rayfin up)
+  data/                         # Source data samples + metadata-template.md
+<AppName>/                      # Rayfin data app — scaffolded as a subfolder in step 4 (its own
+                                #   package.json, fabric.yaml, AI files; runs npm run dev / npx rayfin up)
 ```
 
-The template ships without `<AppName>/`; step 4 scaffolds it into your repo as a self-contained Rayfin project. The semantic model lives in its own repo, created from the [`fabric-semantic-model`](https://github.com/joelmsherman/fabric-semantic-model) template; this app connects to it via its share link.
+The template ships without `<AppName>/`; step 4 scaffolds it into your repo as a self-contained Rayfin project, giving you a monorepo of semantic model (`src/`) + data app (`<AppName>/`).
 
 ## Theming
 

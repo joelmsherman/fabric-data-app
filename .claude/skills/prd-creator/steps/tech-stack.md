@@ -15,4 +15,4 @@ The stack:
 - Centralized theming via one style file — scaffolded by `/design-system` from the client-approved Claude Design mockset — and per-column format strings applied everywhere
 - Playwright browser validation before publish
 
-Briefly confirm with the user that they have (or will create) the semantic model to connect to, and that they can get its share link — typically built in a separate repo from the [`fabric-semantic-model`](https://github.com/joelmsherman/fabric-semantic-model) template; the share link is all this app needs. That's the only "setup" decision here — everything else is fixed.
+Briefly confirm with the user that they have (or will create) the semantic model to connect to, and that they can get its share link. That's the only "setup" decision here — everything else is fixed.

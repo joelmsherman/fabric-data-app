@@ -1,0 +1,2 @@
+/// Relationships follow the naming convention: fact-dimension
+/// Example: sales-customer, purchases-product
