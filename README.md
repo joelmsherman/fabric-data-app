@@ -47,12 +47,6 @@ Used to browse the model schema and validate DAX before wiring it into visuals. 
 
 Required for the BPA validation script. Install via [the official instructions](https://learn.microsoft.com/powershell/scripting/install/installing-powershell).
 
-### Power BI Desktop (optional)
-
-The semantic model is authored as TMDL (via Tabular Editor and the Power BI plugins), so Power BI Desktop isn't required. If you prefer to author or preview the model visually, enable Developer Mode so it saves as TMDL:
-- **File** > **Options and settings** > **Options** > **Preview features**
-- Enable **Power BI project (.pbip) save option**
-
 ### Claude Code Plugins
 
 The `.claude/settings.json` in this template points to the [`data-goblin/power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development) marketplace and pre-enables four plugins (the report-authoring plugins are intentionally left off — visualization lives in the data app):
