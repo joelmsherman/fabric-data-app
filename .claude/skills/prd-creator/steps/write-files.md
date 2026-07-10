@@ -13,6 +13,7 @@ Also write:
 
 - `_build_plan/design-brief.md` — a paste-ready brief for Claude Design (template below), built from the locked scope plus the **Design inputs** phase.
 - `_build_plan/design-handoff.md` — a stub (template below) where the builder records the approved mockset link after client sign-off. Milestone prompts reference it.
+- `_build_plan/model-spec.md` — a **portable, self-contained semantic-model handoff** (template below): the core purpose (one short paragraph), the full Semantic data model section, and a note that grounding samples live in `docs/data/`. Written to be copied into a repo created from the `fabric-semantic-model` template, where the model is built and deployed. It intentionally duplicates the PRD's Semantic data model section — portability beats DRY here.
 - `_build_plan/milestones/{N}-{slug}/prompt.md` — one per milestone, always markdown; consumed by the coding agent in plan mode, not by the user.
 
 Create this exact structure in the codebase root:
@@ -23,6 +24,7 @@ _build_plan/
   prd.html             # client-friendly PRD — review & sign-off
   design-brief.md      # paste into Claude Design to generate the mockset
   design-handoff.md    # stub — approved mockset link goes here after sign-off
+  model-spec.md        # portable handoff — copy into the fabric-semantic-model repo
   milestones/
     1-{milestone-slug}/
       prompt.md
@@ -40,7 +42,8 @@ After writing, briefly tell the user the files are ready and how to use them, in
 1. Open `_build_plan/prd.html` in a browser (`open _build_plan/prd.html`) and send it to the client for PRD review; `prd.md` is the full version for you and the coding agents.
 2. Once the PRD is approved, paste `_build_plan/design-brief.md` into [Claude Design](https://claude.ai/design) (along with the client's design system, if they have one there) and iterate on the mockset with the client.
 3. When the client approves the mockset, paste its handoff/share URL into `_build_plan/design-handoff.md` — the milestone prompts read it from there.
-4. Then hand the agent the milestone-1 `prompt.md` to start building. Mention that after each milestone the agent writes a `milestone-log.md` in that milestone's folder to record what was done.
+4. Copy `_build_plan/model-spec.md` and `docs/data/` into a repo created from the [`fabric-semantic-model`](https://github.com/joelmsherman/fabric-semantic-model) template, build and deploy the model there, and bring back its **share link** — the milestone agents need it to wire up the visuals.
+5. Then hand the agent the milestone-1 `prompt.md` to start building. Mention that after each milestone the agent writes a `milestone-log.md` in that milestone's folder to record what was done.
 
 ## File templates
 
@@ -106,6 +109,24 @@ Mirror the structure of a high-quality real PRD. Use these sections in order:
 ---
 
 {Repeat for each milestone}
+```
+
+### model-spec.md structure
+
+A self-contained handoff the builder copies into a repo created from the `fabric-semantic-model` template (along with `docs/data/`). It must stand alone — the model repo's agent won't see this repo or the PRD. Same conceptual voice as the PRD: names and meanings, never DAX or TMDL.
+
+```markdown
+# Model spec — {App name}
+
+{The locked core purpose, one short paragraph: what the product is for and the decisions it serves.}
+
+## Semantic data model
+
+{The full Semantic data model section from the PRD, verbatim: **Facts**, **Dimensions**, **Relationships**, **Key measures** — conceptual only.}
+
+## Grounding data
+
+Source data samples and their metadata live in `docs/data/` (copied from the app repo alongside this spec). Ground every table and column in them.
 ```
 
 ### milestones/N-{slug}/prompt.md structure

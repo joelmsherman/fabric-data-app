@@ -14,13 +14,6 @@ dist/
 .vite/
 .rayfin/
 
-# BPA-downloaded tooling portables (Tabular Editor, PBI Inspector)
-_tools/
-
-# Power BI Desktop cache
-.pbi/
-*.abf
-
 # misc
 .DS_Store
 *.pem
