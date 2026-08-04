@@ -388,7 +388,39 @@ These will conflict with — or quietly override — the new design system if le
 
 Make the edits in place, briefly note in chat what you removed or rewrote, then proceed to 5b.
 
-### 5b. Append the managed block
+### 5b. Reconcile *nested* skill files (scaffold-installed agent skills)
+
+`AGENTS.md` / `CLAUDE.md` are not the only places styling directives live. Scaffolds install their own agent skills into the repo, and those routinely claim ownership of the token vocabulary — which silently overrides everything this skill just wrote. **Reconciling only the top-level instruction files is not enough.**
+
+Scan these globs for skill files (skip anything inside a `bm-design-system` block, and skip this skill's own directory):
+
+```
+.agents/skills/**/*.md
+.github/skills/**/*.md
+.claude/skills/**/*.md
+```
+
+Grep them for the same signals as 5a, plus these — which are the ones that actually cause damage:
+
+- "single source of truth" applied to a CSS file
+- `@theme`, `--color-*`, `--font-*`, or any instruction to *author* or *customize* tokens
+- "update the semantic color tokens", "make them yours", "set these first"
+- Instructions to pick an aesthetic direction, palette, or font pairing
+- A named CSS file the agent is told to edit for theming (e.g. `global.css`)
+
+**Known case — Microsoft Rayfin's `app-design` skill.** A Fabric data app scaffolded with the Rayfin CLI ships `.agents/skills/app-design/SKILL.md`, which tells the agent that `src/global.css` is the single source of truth and to author `--color-primary` / `--color-card` / `--color-border` there. That directly contradicts a codified design system, and in a Fabric data app it is worse than cosmetic: those Fluent-named variables are a runtime bridge read by `readCssTheme()`, so an agent "helpfully" rewriting them breaks chart theming. Reconcile it.
+
+For each conflicting skill file, **keep the non-styling content** (layout, container sizing, grid, loading/empty/error states, accessibility, validation) and **replace the theming and token sections** with the deferral block in `references/agent-skill-deferral.md`, substituting the paths for this project. Do not delete the whole file — the layout guidance is usually genuinely useful and not duplicated anywhere else.
+
+**Warn the user that this edit is not durable.** These files are owned by the scaffold, so re-running its installer (for Rayfin: `npx rayfin ai-files install`, and possibly `rayfin up`) restores the original and reintroduces the conflict. Tell them plainly:
+
+> `<path>` is scaffold-owned, so `<installer command>` will restore the conflicting version. Re-run `/design-system` to fix it again — it merges non-destructively. I've also added a precedence rule to `<durable file>`, which the scaffold does not regenerate, as a backstop.
+
+Then write that precedence rule into the **most durable** instruction file available — one the scaffold does not own. Prefer a repo-root `CLAUDE.md` above the scaffolded app folder over an `AGENTS.md` inside it, since scaffold installers commonly regenerate the latter. State the ordering explicitly:
+
+> Design system (`<token file>` + the design-system section of the agent instructions) > scaffold skills > agent defaults. Scaffold skills govern layout and behavior only, never color, type, or tokens.
+
+### 5c. Append the managed block
 
 Append (or replace, if the markers already exist) the block from `references/agent-instructions.md`. The block is delimited by HTML comments:
 

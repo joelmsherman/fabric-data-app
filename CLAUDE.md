@@ -80,9 +80,21 @@ Each visual is typically three files that work together:
 - `*.json` — a Vega-Lite specification for the visual (prefer the template's preconfigured visual primitives: bar/line/area/scatter/pie/donut/heatmap/bubble/waterfall/KPI card)
 - `*.tsx` — a React component that binds the DAX query to the Vega-Lite spec
 
+### Instruction precedence (read this before any UI work)
+
+**Design system > scaffold skills > agent defaults.**
+
+Once `/design-system` has run, the design system is `<AppName>/src/styles/design-system.css` plus the "Design system" section of `<AppName>/AGENTS.md`. It owns every color, type, spacing, radius, elevation and component decision.
+
+The Rayfin scaffold installs its own agent skills into `<AppName>/.agents/skills/`. Those govern **layout and behavior only** — page structure, container sizing, dashboard grid, loading/empty/error states, accessibility, validation. They do **not** govern visual language. In particular, `app-design`'s instruction to author color and font tokens in `global.css` is **void** once a design system exists: tokens live in `design-system.css`, and the Fluent-named `--color-*` variables left in `global.css` are a runtime bridge read by `readCssTheme()` for `<VegaVisual>` and `<DataGrid>`, not theme values. Editing them as theme values breaks chart theming silently.
+
+⚠️ **This conflict regenerates.** `<AppName>/.agents/` and `<AppName>/AGENTS.md` are scaffold-owned, so `npx rayfin ai-files install` (and possibly `rayfin up`) restores the conflicting versions and wipes the reconciliation. This file is not regenerated, which is why the rule lives here. To repair after a scaffold refresh, re-run `/design-system` — its Phase 5b reconciles the nested skills and merges non-destructively.
+
 ### Theming & format strings (app layer)
 - The client-approved Claude Design mockset (linked in `_build_plan/design-handoff.md`) is the visual source of truth; the design system codifies it — match the mocks using design-system tokens and `components/ui/` primitives, never ad-hoc styles copied from the mock
-- Theming is centralized in the app's `global.css`; make styling changes there so they flow to every card, chart, grid, and tooltip — do not restyle components piecemeal
+- Theming is centralized in `<AppName>/src/styles/design-system.css` (written by `/design-system`); make styling changes there so they flow to every card, chart, grid, and tooltip — do not restyle components piecemeal. `global.css` is the entry file plus the Fluent runtime bridge only
+- Chart colors come from `<AppName>/src/lib/viz-palette.ts` (`useVizPalette()`), not from hardcoded hexes in Vega-Lite specs
+- Dark mode is host-driven: the Fabric portal's `data-appearance` flows through `useAppTheme()` to a `.dark` class on `<html>`. Do not add a theme toggle
 - Define a column's **format string once** (per the semantic model / column metadata); the template applies it everywhere that column appears (axes, tooltips, data labels, grid cells). Keep currency/percent/number formatting consistent across all visuals
 
 ### Validation before deploy
