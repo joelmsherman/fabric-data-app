@@ -162,7 +162,7 @@ npx rayfin ai-files install
 > ```bash
 > rm -rf <AppName>/.git
 > ```
-> This matters for more than tidiness: Claude Code discovers the repo-root `.claude/skills/` (design-system, prd-creator) and `settings.json` plugins only when `<AppName>/` is part of **this** repo. The nested `<AppName>/.git` would make Claude treat `<AppName>/` as a separate project and lose those skills.
+> This matters for more than tidiness: Claude Code discovers the repo-root `.agents/skills/` (design-system, prd-creator; reached via the `.claude/skills` symlink) and `settings.json` plugins only when `<AppName>/` is part of **this** repo. The nested `<AppName>/.git` would make Claude treat `<AppName>/` as a separate project and lose those skills.
 >
 > **Keep your Claude session at the repo root** for all agent work — it can read and edit files under `<AppName>/` just fine, and only there does it see the skills and plugins. Use a terminal in `<AppName>/` only to run the shell commands (`npm run dev`, `npx rayfin up`).
 

@@ -123,7 +123,7 @@ Plugins from the `data-goblin/power-bi-agentic-development` marketplace (enabled
 | `/refreshing-semantic-model` | Refresh operations, monitoring, troubleshooting |
 | `/lineage-analysis` | Downstream dependency tracing |
 
-Repo-local skills (in `.claude/skills/`):
+Repo-local skills (in `.agents/skills/`, symlinked from `.claude/skills`):
 
 | Skill | Purpose |
 |-------|---------|
