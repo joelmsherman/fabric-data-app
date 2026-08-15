@@ -156,7 +156,11 @@ Then, **from the root of this repo**, run the command the portal shows you (it p
 npm create @microsoft/rayfin@latest -- "<AppName>" --template dataapp --workspace "<WorkspaceName>"
 cd <AppName>
 npx rayfin ai-files install
+cd ..
+scripts/wire-app-agents.sh "<AppName>"
 ```
+
+The last command wires the scaffold's agent files into Claude Code's discovery paths: Rayfin writes its instructions and skills to the vendor-neutral `<AppName>/AGENTS.md` and `<AppName>/.agents/skills/`, but Claude Code only reads `CLAUDE.md` and `.claude/skills`, so the script adds two symlinks (`<AppName>/CLAUDE.md → AGENTS.md`, `<AppName>/.claude/skills → ../.agents/skills`). Claude Code loads nested files lazily, so Rayfin's app-scope instructions and skills activate exactly when Claude works under `<AppName>/`. The script is idempotent — **re-run it after every `npx rayfin ai-files install`** (a refresh can replace a symlink with a real file; the script detects and reports that).
 
 > `<AppName>` must match the App item you created in Fabric. If the Rayfin scaffold initializes its own git repo inside `<AppName>/`, **delete that nested `<AppName>/.git`** (keep the repo-root `.git`) so the whole solution stays one git repo. Run this from the repo root:
 > ```bash
@@ -199,12 +203,17 @@ When finished, ask Claude to overwrite this `README.md` with a proper one that f
 ## Folder Structure
 
 ```
-.claude/
-  settings.json                # Claude Code marketplace + plugin configuration
-  skills/
+.agents/
+  skills/                      # Repo-scope agent skills (canonical location, agentcanon convention)
     design-system/             # /design-system — approved mockset (or brand picks) → central style file + reference page
     prd-creator/               # /prd-creator — interview → PRDs (full + client) + design brief + milestone prompts
-CLAUDE.md                      # Semantic-model + data-app conventions for Claude
+.claude/
+  settings.json                # Claude Code marketplace + plugin configuration
+  skills → ../.agents/skills   # Symlink so Claude Code discovers the canonical skills
+AGENTS.md                      # Semantic-model + data-app conventions (canonical agent instructions)
+CLAUDE.md → AGENTS.md          # Symlink so Claude Code reads them
+scripts/
+  wire-app-agents.sh           # Post-scaffold: wires <AppName>'s AGENTS.md + skills into Claude Code (step 6)
 setup.sh                      # Initializes the {{ProjectName}} scaffold
 src/
   {{ProjectName}}.SemanticModel/   # TMDL semantic model (self-contained, deployable)
